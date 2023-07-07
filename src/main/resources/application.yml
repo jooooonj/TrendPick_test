@@ -1,14 +1,13 @@
 spring:
   profiles:
-    active: dev
-    include: secret, db, data, ela
+    active: prod
+    include: secret, data
   batch:
     job:
       name: ${job.name:NONE}
       enabled: false
     jdbc:
       initialize-schema: always
-
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
