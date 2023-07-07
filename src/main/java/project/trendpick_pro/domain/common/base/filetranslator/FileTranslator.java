@@ -1,6 +1,7 @@
 package project.trendpick_pro.domain.common.base.filetranslator;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import lombok.RequiredArgsConstructor;
@@ -47,12 +48,13 @@ public class FileTranslator {
     }
 
     public void deleteFile(CommonFile commonFile) {
-        for (CommonFile childFile : commonFile.getChild()) {
-            File file = new File(getFilePath(childFile.getFileName()));
-            file.delete();
+        DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucket, commonFile.getFileName());
+        amazonS3.deleteObject(deleteObjectRequest);
+
+        for (CommonFile subFile : commonFile.getChild()) {
+            deleteObjectRequest = new DeleteObjectRequest(bucket, subFile.getFileName());
+            amazonS3.deleteObject(deleteObjectRequest);
         }
-        File file = new File(getFilePath(commonFile.getFileName()));
-        file.delete();
     }
 
     //파일 여러개를 한 번에 묶어서 변환할때
