@@ -1,5 +1,9 @@
 package project.trendpick_pro.domain.common.base.filetranslator;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -12,9 +16,12 @@ import java.util.List;
 import java.util.UUID;
 
 @Component
+@RequiredArgsConstructor
 public class FileTranslator {
-
-    @Value("${file.path}")
+    private final AmazonS3 amazonS3;
+    @Value("${cloud.aws.s3.bucket}")
+    private String bucket;
+    @Value("https://kr.object.ncloudstorage.com/{cloud.aws.s3.bucket}/")
     private String filePath; //저장경로
 
     public String getFilePath(String filename) {
@@ -28,7 +35,11 @@ public class FileTranslator {
         }
 
         String translatedFileName = translateFileName(multipartFile.getOriginalFilename());
-        multipartFile.transferTo(new File(getFilePath(translatedFileName)));
+        ObjectMetadata oj = new ObjectMetadata();
+        oj.setContentLength(multipartFile.getInputStream().available());
+
+        PutObjectRequest poj = new PutObjectRequest(bucket, translatedFileName, multipartFile.getInputStream(), new ObjectMetadata());
+        amazonS3.putObject(poj);
 
         return CommonFile.builder()
                 .fileName(translatedFileName)
